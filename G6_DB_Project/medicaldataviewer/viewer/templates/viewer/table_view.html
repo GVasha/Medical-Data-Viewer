@@ -1,0 +1,205 @@
+{% load custom_tags %}
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Medical Data Viewer</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.15.1/css/all.css">
+    <!-- Your Custom CSS -->
+    <link rel="stylesheet" type="text/css" href="{% static 'viewer/styles.css' %}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="{% url 'table_view' %}">Medical Data Viewer</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'table_view' %}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'person_stats' %}">Person Statistics</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'product_stats' %}">Product Statistics</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'injection_stats' %}">Injection Statistics</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <h1 class="mt-5 mb-4 text-center">Select a Table to View</h1>
+
+        <!-- Combined Form -->
+        <form method="get" action="">
+            <!-- Table Selection -->
+            <div class="form-group">
+                <label for="table">Choose a table:</label>
+                <select name="table" id="table" class="form-control" onchange="this.form.submit()">
+                    <option value="Product" {% if selected_table == 'Product' %}selected{% endif %}>Product</option>
+                    <option value="Person" {% if selected_table == 'Person' %}selected{% endif %}>Person</option>
+                    <option value="Injection" {% if selected_table == 'Injection' %}selected{% endif %}>Injection</option>
+                </select>
+            </div>
+
+            <h2>Data from {{ selected_table }}</h2>
+
+            <!-- Filters -->
+            {% if selected_table == 'Product' %}
+                <!-- Product Filters -->
+                <div class="form-group">
+                    <label for="id">ID:</label>
+                    <input type="number" name="id" id="id" value="{{ filters.id }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="product">Product Name:</label>
+                    <input type="text" name="product" id="product" value="{{ filters.product }}" class="form-control">
+                </div>
+
+            {% elif selected_table == 'Person' %}
+                <!-- Person Filters -->
+                <div class="form-group">
+                    <label for="id">ID:</label>
+                    <input type="number" name="id" id="id" value="{{ filters.id }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="age_min">Age Min:</label>
+                    <input type="number" name="age_min" id="age_min" value="{{ filters.age_min }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="age_max">Age Max:</label>
+                    <input type="number" name="age_max" id="age_max" value="{{ filters.age_max }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="sex">Sex:</label>
+                    <select name="sex" id="sex" class="form-control">
+                        <option value="">--All--</option>
+                        {% for key, value in Person.SEX_CHOICES %}
+                            <option value="{{ key }}" {% if filters.sex == key|stringformat:"s" %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="qualification">Qualification:</label>
+                    <select name="qualification" id="qualification" class="form-control">
+                        <option value="">--All--</option>
+                        {% for key, value in Person.QUALIFICATION_CHOICES %}
+                            <option value="{{ key }}" {% if filters.qualification == key|stringformat:"s" %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="country">Country:</label>
+                    <input type="text" name="country" id="country" value="{{ filters.country }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="death">Death:</label>
+                    <select name="death" id="death" class="form-control">
+                        <option value="">--All--</option>
+                        {% for key, value in Person.YES_NO_CHOICES %}
+                            <option value="{{ key }}" {% if filters.death == key|stringformat:"s" %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="disability">Disability:</label>
+                    <select name="disability" id="disability" class="form-control">
+                        <option value="">--All--</option>
+                        {% for key, value in Person.YES_NO_CHOICES %}
+                            <option value="{{ key }}" {% if filters.disability == key|stringformat:"s" %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% elif selected_table == 'Injection' %}
+               <!-- Injection Filters -->
+                <div class="form-group">
+                    <label for="id">ID:</label>
+                    <input type="number" name="id" id="id" value="{{ filters.id }}" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="drug">Injection Classification:</label>
+                    <select name="drug" id="drug" class="form-control">
+                        <option value="">--All--</option>
+                        {% for key, value in Injection.DRUG_CHOICES %}
+                            <option value="{{ key }}" {% if filters.drug == key|stringformat:"s" %}selected{% endif %}>{{ value }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="injection">Injection Details:</label>
+                    <input type="text" name="injection" id="injection" value="{{ filters.injection }}" class="form-control">
+                </div>
+
+
+
+            
+            {% endif %}
+
+            <!-- Buttons -->
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-filter"></i> Filter
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='?table={{ selected_table }}'">
+                    Reset
+                </button>
+            </div>
+        </form>
+
+        <!-- Data Table -->
+        {% if data %}
+            <table class="table table-striped table-bordered mt-4">
+                <thead class="thead-dark">
+                    <tr>
+                        {% for field_name in field_names %}
+                            <th>
+                                {% if selected_table == 'Injection' and field_name == 'drug' %}
+                                    Injection Classification
+                                {% elif selected_table == 'Injection' and field_name == 'injection' %}
+                                    Injection Details
+                                {% else %}
+                                    {{ field_name|capfirst }}
+                                {% endif %}
+                            </th>
+                        {% endfor %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for record in data %}
+                        <tr>
+                            {% for field_name in field_names %}
+                                {% if selected_table == 'Person' and field_name|in_list:"sex,qualification,death,disability" %}
+                                    {% with method_name='get_'|add:field_name|add:'_display' %}
+                                        <td>{{ record|call_method:method_name }}</td>
+                                    {% endwith %}
+                                {% elif selected_table == 'Injection' and field_name == 'drug' %}
+                                    <td>{{ record.get_drug_display }}</td>
+                                {% else %}
+                                    <td>{{ record|attr:field_name }}</td>
+                                {% endif %}
+                            {% endfor %}
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No data available for this table.</p>
+        {% endif %}
+    </div>
+    <!-- Bootstrap JS and dependencies -->
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+</body>
+</html>

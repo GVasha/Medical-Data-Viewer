@@ -1,0 +1,140 @@
+{% load static %}
+{% load custom_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Injection Statistics</title>
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <a class="navbar-brand" href="{% url 'table_view' %}">Medical Data Viewer</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" 
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'table_view' %}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'person_stats' %}">Person Statistics</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'product_stats' %}">Product Statistics</a>
+                </li>
+                <li class="nav-item active">
+                    <a class="nav-link" href="{% url 'injection_stats' %}">Injection Statistics</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container mt-4">
+        <h1>Injection Statistics</h1>
+
+        <!-- Chart for Injection Classification Distribution -->
+        <div class="mt-5">
+            <h2>Injection Classification Distribution</h2>
+            <canvas id="drugChart"></canvas>
+        </div>
+
+        <!-- Chart for Injection Details Distribution -->
+        <div class="mt-5">
+            <h2>Injection Details Distribution</h2>
+            <canvas id="injectionChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Passing JSON data from Django to JavaScript, using escapejs to properly escape content
+        var drugLabels = JSON.parse("{{ drug_labels|escapejs }}");
+        var drugCounts = JSON.parse("{{ drug_counts|escapejs }}");
+        var injectionLabels = JSON.parse("{{ injection_labels|escapejs }}");
+        var injectionCounts = JSON.parse("{{ injection_counts|escapejs }}");
+
+        // Update label descriptions for the pie chart
+        var labelMapping = {
+            "1": "Routine Injection",
+            "2": "Emergency One-Time Injection",
+            "3": "Non-Emergency One-Time Injection"
+        };
+        
+        // Map drugLabels to more descriptive names
+        var correctedDrugLabels = drugLabels.map(label => labelMapping[label] || label);
+    
+        // Injection Classification Pie Chart
+        var drugCtx = document.getElementById('drugChart').getContext('2d');
+        var drugChart = new Chart(drugCtx, {
+            type: 'pie',
+            data: {
+                labels: correctedDrugLabels,
+                datasets: [{
+                    data: drugCounts,
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)'
+                    ]
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'bottom'
+                    },
+                },
+            }
+        });
+    
+        // Injection Details Bar Chart
+        var injectionCtx = document.getElementById('injectionChart').getContext('2d');
+        var injectionChart = new Chart(injectionCtx, {
+            type: 'bar',
+            data: {
+                labels: injectionLabels,
+                datasets: [{
+                    label: 'Number of Injections',
+                    data: injectionCounts,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                },
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Injection Details'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Number of Injections'
+                        },
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+</body>
+</html>
